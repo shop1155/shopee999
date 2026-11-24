@@ -69,53 +69,99 @@
     .btn-primary:hover {
       background: #d73f22;
     }
-    .result-item {
-      border: 1px solid #e5e8ec;
-      background: #fafbfc;
+    .btn-clear {
+      margin-top: 10px;
+      width: 100%;
+      padding: 11px 16px;
+      background: #f1f3f5;
+      color: #333;
+      border: 1px solid #d8dee4;
       border-radius: 10px;
-      padding: 14px;
-      margin-top: 14px;
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
     }
-    .result-top {
+    .btn-clear:hover {
+      background: #e5e9ed;
+    }
+    .summary-text {
+      margin-top: 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #374151;
+    }
+    .result-box {
+      border: 1px solid #f2dfd7;
+      background: #fffaf7;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .result-box-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0 0 12px;
+      color: #1f2937;
+    }
+    .result-item {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px dashed #e5e7eb;
     }
-    .badge {
-      background: #e6f7ed;
-      color: #137333;
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 999px;
+    .result-item:last-of-type {
+      border-bottom: none;
     }
-    .result-url {
+    .result-link-wrap {
       word-break: break-all;
-      font-size: 0.9rem;
-      background: #fff;
-      border: 1px dashed #cbd3dd;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      flex: 1;
     }
-    .btn-copy {
+    .result-link {
+      color: #1d4ed8;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .result-link:hover {
+      color: #1e40af;
+    }
+    .btn-copy-one {
       background: #1f2937;
       color: #fff;
       border: none;
       border-radius: 7px;
-      padding: 7px 12px;
-      font-size: 0.85rem;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-copy-one:hover {
+      background: #111827;
+    }
+    .btn-copy-all {
+      margin-top: 14px;
+      width: 100%;
+      padding: 12px 16px;
+      background: #ee4d2d;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.98rem;
+      font-weight: 700;
       cursor: pointer;
     }
-    .btn-copy:hover {
-      background: #111827;
+    .btn-copy-all:hover {
+      background: #d73f22;
     }
     .error-text {
       color: #c62828;
       font-size: 0.9rem;
       margin-top: 10px;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -130,26 +176,40 @@
     <textarea id="rawLinks" placeholder="例如：https://shopee.tw/product/123456/789012"></textarea>
 
     <button type="button" class="btn-primary" onclick="convertLinks()">🚀 立即轉換連結</button>
+    <button type="button" class="btn-clear" onclick="clearLinks()">清除</button>
     <div id="errorMsg" class="error-text"></div>
+    <div id="summaryMsg" class="summary-text"></div>
     <div id="results"></div>
   </div>
 
   <script>
     const _p1 = ["an_", "1630", "2200", "032"].join("");
     const _p2 = ["i", "ru", "by"].join("");
+    let latestConvertedUrls = [];
 
     function extractFirstUrl(text) {
       const match = text.match(/https?:\/\/[^\s]+/i);
       return match ? match[0] : "";
     }
 
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
     function convertLinks() {
       const rawText = document.getElementById("rawLinks").value.trim();
       const errorEl = document.getElementById("errorMsg");
+      const summaryEl = document.getElementById("summaryMsg");
       const resultsEl = document.getElementById("results");
 
       errorEl.textContent = "";
+      summaryEl.textContent = "";
       resultsEl.innerHTML = "";
+      latestConvertedUrls = [];
 
       if (!rawText) {
         errorEl.textContent = "請先貼上至少一個商品網址。";
@@ -157,7 +217,7 @@
       }
 
       const lines = rawText.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-      let successCount = 0;
+      const convertedList = [];
 
       lines.forEach((line, idx) => {
         const cleanUrl = extractFirstUrl(line);
@@ -170,32 +230,80 @@
           urlObj.searchParams.set("utm_campaign", "-");
           urlObj.searchParams.set("utm_content", _p2);
 
-          successCount += 1;
-          const finalUrl = urlObj.toString();
-          const card = document.createElement("div");
-          card.className = "result-item";
-          card.innerHTML = `
-            <div class="result-top">
-              <span class="badge">✅ 轉換成功 #${successCount}</span>
-              <button type="button" class="btn-copy" onclick="copyText(this, ${JSON.stringify(finalUrl)})">複製連結</button>
-            </div>
-            <div class="result-url">${finalUrl}</div>
-          `;
-          resultsEl.appendChild(card);
+          convertedList.push(urlObj.toString());
         } catch (err) {
           errorEl.textContent = `第 ${idx + 1} 行網址格式無法辨識，請確認是否為完整 http/https 網址。`;
         }
       });
 
-      if (successCount === 0 && !errorEl.textContent) {
+      if (convertedList.length === 0 && !errorEl.textContent) {
         errorEl.textContent = "找不到有效的網址，請確認貼上的內容包含 http:// 或 https://。";
+        return;
+      }
+
+      if (convertedList.length > 0) {
+        latestConvertedUrls = convertedList;
+        summaryEl.textContent = `完成，共產生 ${convertedList.length} 個推廣連結`;
+
+        const box = document.createElement("div");
+        box.className = "result-box";
+
+        const titleEl = document.createElement("div");
+        titleEl.className = "result-box-title";
+        titleEl.textContent = "推廣連結";
+        box.appendChild(titleEl);
+
+        convertedList.forEach((finalUrl, i) => {
+          const safeUrl = escapeHtml(finalUrl);
+          const item = document.createElement("div");
+          item.className = "result-item";
+          item.innerHTML = `
+            <div class="result-link-wrap">
+              <span>${i + 1}. </span>
+              <a class="result-link" href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a>
+            </div>
+            <button type="button" class="btn-copy-one" onclick="copySingle(this, ${i})">複製</button>
+          `;
+          box.appendChild(item);
+        });
+
+        const copyAllBtn = document.createElement("button");
+        copyAllBtn.type = "button";
+        copyAllBtn.className = "btn-copy-all";
+        copyAllBtn.textContent = "一鍵複製全部";
+        copyAllBtn.onclick = function () {
+          copyAll(this);
+        };
+        box.appendChild(copyAllBtn);
+
+        resultsEl.appendChild(box);
       }
     }
 
-    function copyText(btn, text) {
-      navigator.clipboard.writeText(text).then(() => {
+    function clearLinks() {
+      document.getElementById("rawLinks").value = "";
+      document.getElementById("errorMsg").textContent = "";
+      document.getElementById("summaryMsg").textContent = "";
+      document.getElementById("results").innerHTML = "";
+      latestConvertedUrls = [];
+    }
+
+    function copySingle(btn, index) {
+      const targetUrl = latestConvertedUrls[index];
+      if (!targetUrl) return;
+      navigator.clipboard.writeText(targetUrl).then(() => {
         const oldText = btn.textContent;
-        btn.textContent = "已複製！";
+        btn.textContent = "已複製";
+        setTimeout(() => { btn.textContent = oldText; }, 1500);
+      });
+    }
+
+    function copyAll(btn) {
+      if (!latestConvertedUrls.length) return;
+      const allText = latestConvertedUrls.join("\n");
+      navigator.clipboard.writeText(allText).then(() => {
+        const oldText = btn.textContent;
+        btn.textContent = "已複製全部！";
         setTimeout(() => { btn.textContent = oldText; }, 1500);
       });
     }
