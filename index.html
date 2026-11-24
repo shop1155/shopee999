@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>專屬蝦皮分潤連結轉換器</title>
+  <style>
+    :root {
+      --primary: #ee4d2d;
+      --primary-hover: #d73211;
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #222222;
+      --muted: #666666;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px 14px;
+    }
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      text-align: center;
+      color: var(--primary);
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .config-box {
+      background: #fff8f6;
+      border: 1px solid #ffd8cf;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+    .config-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .config-body {
+      margin-top: 12px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+    input[type="text"]:focus, textarea:focus {
+      border-color: var(--primary);
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      flex: 2;
+    }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary {
+      background: #f1f3f5;
+      color: #333;
+      flex: 1;
+    }
+    .btn-secondary:hover { background: #e2e6ea; }
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 13px;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+    .result-section {
+      margin-top: 22px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .result-item {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      word-break: break-all;
+      font-size: 13px;
+    }
+    .result-item a {
+      color: #0b57d0;
+      text-decoration: none;
+    }
+    .result-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .badge {
+      display: inline-block;
+      background: #e6f4ea;
+      color: #137333;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 4px;
+    }
+    .error {
+      color: #c5221f;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛍️ 蝦皮專屬分潤連結轉換器</h1>
+    <div class="subtitle">貼上蝦皮商品網址，一鍵轉成專屬推廣連結</div>
+
+    <!-- 分潤參數設定區 -->
+    <div class="config-box">
+      <div class="config-header" onclick="toggleConfig()">
+        <span>⚙️ 分潤參數設定（目前已預設你的分潤 ID：an_16302200032）</span>
+        <span id="toggleIcon">展開 ▼</span>
+      </div>
+      <div class="config-body" id="configBody" style="display:none;">
+        <label for="affId">蝦皮分潤來源 ID（utm_source / mmp_pid）</label>
+        <input type="text" id="affId" value="an_16302200032" />
+        <label for="subId" style="margin-top:10px;">追蹤標籤（Sub ID）</label>
+        <input type="text" id="subId" value="iruby" />
+        <div class="hint">
+          每次轉換都會自動帶入你的分潤帳號與 Sub ID（格式為 <code>iruby----</code>）。
+        </div>
+      </div>
+    </div>
+
+    <!-- 輸入商品網址 -->
+    <label for="inputUrls">📥 貼上蝦皮商品連結（可多行，每行一個網址）：</label>
+    <textarea id="inputUrls" rows="5" placeholder="例如：
+https://shopee.tw/product/123456/7890123
+或貼上包含蝦皮網址的分享文字"></textarea>
+
+    <div class="btn-group">
+      <button class="btn-primary" onclick="convertLinks()">🚀 立即轉換連結</button>
+      <button class="btn-secondary" onclick="clearAll()">🗑️ 清空內容</button>
+    </div>
+    <div id="errorMsg" class="error"></div>
+
+    <!-- 轉換結果 -->
+    <div class="result-section" id="resultSection" style="display:none;">
+      <div class="result-header">
+        <strong>🔗 轉換結果（共 <span id="resultCount">0</span> 筆）</strong>
+        <button class="btn-small" onclick="copyAll()">📋 一鍵複製全部</button>
+      </div>
+      <div id="resultList"></div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedAffId = localStorage.getItem("shopee_aff_id");
+      const savedSubId = localStorage.getItem("shopee_sub_id");
+      if (savedAffId) document.getElementById("affId").value = savedAffId;
+      if (savedSubId) document.getElementById("subId").value = savedSubId;
+    });
+
+    function toggleConfig() {
+      const body = document.getElementById("configBody");
+      const icon = document.getElementById("toggleIcon");
+      if (body.style.display === "none") {
+        body.style.display = "block";
+        icon.textContent = "收合 ▲";
+      } else {
+        body.style.display = "none";
+        icon.textContent = "展開 ▼";
+      }
+    }
+
+    function cleanProductUrl(rawText) {
+      const match = rawText.match(/https?:\/\/[^\s]+/);
+      if (!match) return null;
+      try {
+        const u = new URL(match[0]);
+        return `${u.origin}${u.pathname}`;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function buildAffiliateUrl(cleanUrl, affId, subId) {
+      const params = new URLSearchParams({
+        utm_source: affId,
+        utm_medium: "affiliates",
+        utm_campaign: "-",
+        utm_content: `${subId}----`,
+        mmp_pid: affId
+      });
+      return `${cleanUrl}?${params.toString()}`;
+    }
+
+    function convertLinks() {
+      const errorEl = document.getElementById("errorMsg");
+      errorEl.textContent = "";
+
+      const affId = (document.getElementById("affId").value || "an_16302200032").trim();
+      const subId = (document.getElementById("subId").value || "iruby").trim();
+      localStorage.setItem("shopee_aff_id", affId);
+      localStorage.setItem("shopee_sub_id", subId);
+
+      const lines = document.getElementById("inputUrls").value
+        .split(/\n+/)
+        .map(l => l.trim())
+        .filter(Boolean);
+
+      if (lines.length === 0) {
+        errorEl.textContent = "⚠️ 請先貼上至少一個蝦皮商品網址！";
+        return;
+      }
+
+      const results = [];
+      lines.forEach(line => {
+        const cleanUrl = cleanProductUrl(line);
+        if (cleanUrl) {
+          results.push(buildAffiliateUrl(cleanUrl, affId, subId));
+        }
+      });
+
+      if (results.length === 0) {
+        errorEl.textContent = "⚠️ 找不到有效的網址，請確認貼上的連結包含 http:// 或 https://";
+        return;
+      }
+
+      renderResults(results);
+    }
+
+    let latestResults = [];
+
+    function renderResults(results) {
+      latestResults = results;
+      const section = document.getElementById("resultSection");
+      const list = document.getElementById("resultList");
+      document.getElementById("resultCount").textContent = results.length;
+
+      list.innerHTML = results.map((link, idx) => `
+        <div class="result-item">
+          <div class="badge">✅ 轉換成功 #${idx + 1}</div>
+          <div><a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a></div>
+          <div class="result-actions">
+            <button class="btn-small" onclick="copyOne(${idx}, this)">複製連結</button>
+          </div>
+        </div>
+      `).join("");
+
+      section.style.display = "block";
+    }
+
+    function copyOne(idx, btn) {
+      navigator.clipboard.writeText(latestResults[idx]).then(() => {
+        const old = btn.textContent;
+        btn.textContent = "已複製 ✓";
+        setTimeout(() => btn.textContent = old, 1500);
+      });
+    }
+
+    function copyAll() {
+      if (latestResults.length === 0) return;
+      navigator.clipboard.writeText(latestResults.join("\n")).then(() => {
+        alert("已複製全部 " + latestResults.length + " 筆專屬推廣連結！");
+      });
+    }
+
+    function clearAll() {
+      document.getElementById("inputUrls").value = "";
+      document.getElementById("resultSection").style.display = "none";
+      document.getElementById("errorMsg").textContent = "";
+      latestResults = [];
+    }
+  </script>
+</body>
+</html>
